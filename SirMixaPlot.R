@@ -185,15 +185,33 @@ imaGen <- function(directory="./", colorz = T){
       if(interim$Number[j] %in% unique(fraction$cell)){
         # The ROIs that are assigned to a particular nucleus number are subsetted
         hitz <- subset(fraction, cell == interim$Number[j])
+        
         # Individual ROI nuclear distances are calculated
+        #The number of ROIS assigned to that cell
         interim$ROI_Num[j] <- nrow(hitz)
+        
+        #The average average of all the ROIs
         interim$ROI_Area[j] <- mean(hitz$Area)*100
+        
+        #The average Mean intensity of all the ROIs
         interim$ROI_Mean[j] <- mean(hitz$Mean)
+        
+        #The average standard deviation of all the ROIs
         interim$ROI_Stdev[j] <- mean(hitz$StdDev)
+        
+        #The average mode of pixel intensities of all the ROIs
         interim$ROI_Mode[j] <- mean(hitz$Mode)
+        
+        #The average perimeter of all the ROIs
         interim$ROI_Perimeter[j] <- mean(hitz$Perim.)
+        
+        #The average integrated mean/density of the ROIs
         interim$ROI_IntDens[j] <- mean(hitz$IntDen)*100
+        
+        #The total of the integrated means/densities of all the ROIs
         interim$ROI_IntTotal[j] <- sum(hitz$IntDen)*100
+        
+        #The average distance from the nucleus of all the ROIs
         interim$ROI_NucDist[j] <- mean(hitz$NucDist)
       } 
     }
@@ -271,7 +289,7 @@ grapho <- function(df=cells){
 
   cat("Call 'modthequad(df)' to apply quadrant analysis")
   cat("\n")
-  cat("Call 'cull()' to remove certain populations from original dataset (DANGER, but less than before")
+  cat("Call 'cull()' to remove certain populations from original dataset (DANGER, but less than before)")
   cat("\n")
   cat("Call 'eGod(df)' to apply ergodic analysis of S phase cells")
   cat("\n")
