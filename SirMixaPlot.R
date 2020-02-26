@@ -1,8 +1,11 @@
-#SirMixaPlot version 8.0 - Danger! High Voltage
+#SirMixaPlot version 8.1 - Danger! High Voltage
 
 #----------------------------------------------------------------------------------------------------------
 
 #This program is designed to take a csv (comma separated values) file and generate scatterplots based on columns.
+#Changes from SirMixaPlot version 8.0:
+#   -Added some comments and typos
+#   -Added the reMap() function for re-creating a facsimile of the original image
 
 #Changes from SirMixaPlot version 7.0:
 #   -Takes data in from the YggData.imj macro
@@ -260,7 +263,7 @@ joiner <- function(df=cells){
 }
 
 #grapho() actually makes the scatter plots
-grapho <- function(df=cells){
+grapho <- function(df=cells, X=px, Y=py, Xn = xname,  Yn=yname){
   
   #backup dataframe is generated
   interim <<- cells
@@ -269,13 +272,13 @@ grapho <- function(df=cells){
   cat("\n")
   
   #Initial scatter plot is generated
-  qq<<-ggplot(data=df, aes_string(px, py))+
+  qq<<-ggplot(data=df, aes_string(X, Y))+
     theme_linedraw()+
     theme(plot.title = element_text(size=40, face="bold"))+
     theme(axis.title = element_text(size=30, face="bold"))+
     geom_point(size=2)+
-    scale_x_continuous(name=xname)+
-    scale_y_continuous(name=yname)+
+    scale_x_continuous(name=Xn)+
+    scale_y_continuous(name=Yn)+
     theme(axis.text = element_text(face='bold', size=16), axis.ticks = element_blank())
   
   if(newAxis == TRUE){
@@ -811,7 +814,7 @@ compensate <- function(df = cells){
       check <- df
       check[py] <- check[py]-(slop*check[px]+yint)
       cat("Regraphing:")
-      joiner(check)
+      grapho(check)
       yORn <- readline(prompt = "Does this look right (y/n)? ")
       if (yORn == "n"){
         cat("Sorry, lets try that again.")
@@ -838,6 +841,70 @@ compensate <- function(df = cells){
       }
     }
   }
+}
+
+#------------------------------------------------------
+
+# This function take the nuclear locations and sizes and re-maps the original image
+#   df is the dataframe, defaulted to 'cells'
+reMap <- function(df = cells, 
+                  #   highlight is a vector containing the Number(s) to be highlighted in remapped image
+                  highlight = F, 
+                  #   X and Y refer to the beginning of the X and Y position names in the dataframe, defaulted to the nuclear geometric position
+                  X = "X_NUC_", 
+                  Y = "Y_NUC_", 
+                  #   S is the size of the ROI, defaulted to nucelar size
+                  S = "Area_NUC_", 
+                  #   Xn and Yn are the axis names and don't really need to be changed
+                  Xn = "X position", 
+                  Yn = "Y position",
+                  #   colz is a vector of colors to use for the highlights variable. Be sure to have enough colors for the number of populations in the highlights variable
+                  colz = cb_black) {
+  #These set the variable names using regex to anchor tot he front of the variable name
+  X <- names(df)[str_detect(names(df), paste0("^",X))]
+  Y <- names(df)[str_detect(names(df), paste0("^",Y))]
+  S <- names(df)[str_detect(names(df), paste0("^",S))]
+  #This creates a ggplot object for graphing
+  test <- ggplot(data = df, aes(x = unlist(df[X]), y = unlist(df[Y]), size = unlist(df[S])))
+  #If the highlight variable is a vector and is not F, its graphed here
+  if (is.vector(highlight) & highlight != F) {
+    #print(1)
+    check <- df
+    check$highlight <- check$Number %in% highlight
+    qq <<- test+geom_point(aes(color = check$highlight))+
+      ylab(Yn)+
+      xlab(Xn)+
+      scale_color_manual(values = colz)+
+      theme_classic()+
+      theme(axis.text = element_text(face='bold', size=16), axis.ticks = element_blank())+
+      theme(plot.title = element_text(size=40, face="bold"))+
+      theme(axis.title = element_text(size=30, face="bold"))
+  } 
+  # If highlight is a not a vector (such as variable called) and isn't F, then its graphed
+  else if (length(highlight) != 1 & highlight != F){
+    #print(2)
+    qq <<- test+geom_point(aes(color = highlight))+
+      ylab(Yn)+
+      xlab(Xn)+
+      theme_classic()+
+      theme(axis.text = element_text(face='bold', size=16), axis.ticks = element_blank())+
+      theme(plot.title = element_text(size=40, face="bold"))+
+      theme(axis.title = element_text(size=30, face="bold"))+
+      scale_color_manual(values = colz)
+  }
+  # Finally, if highlight IS FALSE, then its graphed without a color option
+  else {
+    #print(3)
+    qq <<- test+geom_point()+
+      ylab(Yn)+
+      xlab(Xn)+
+      theme_classic()+
+      theme(axis.text = element_text(face='bold', size=16), axis.ticks = element_blank())+
+      theme(plot.title = element_text(size=40, face="bold"))+
+      theme(axis.title = element_text(size=30, face="bold"))
+  }
+  #The plot is graphed
+  print(qq)
 }
 
 #-----------------------------------------------------------------
